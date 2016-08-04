@@ -41,40 +41,37 @@
  
  
 ####   1.协议
-
+ 
  
     
     .常量 客户端未登录标识, "<文本长度: 64>"
     .常量 服务器标识, "<文本长度: 64>"
-    .常量 MySql_memberinfo, "<文本长度: 810>"
-    
-    
+    .常量 Socket_Timeout, "2"
     .常量 协议_心跳连接, "0", , 保持socket不自动断开
     .常量 协议_断开连接, "1", , 主动请求断开服务器，让服务器处理相应事务
     .常量 协议_请求服务, "2", , 获取设备列表、其他数据请求
     .常量 协议_数据传送, "3", , IM推送等
-    
-    
     .常量 协议_请求标识ID, "4", , 获得唯一标识义工使用
     .常量 协议_请求终端列表, "21", , 获得当前服务器已连接设备
     .常量 协议_请求断开终端, "23", , 根据标识断开某一设备连接，需要权限
-    
-    
-    .常量 协议_注册登陆设备, "31", , 不是用户注册登录，请求返回标识符
+    .常量 协议_注册登录设备, "31", , 不是用户注册登录，请求返回标识符
     .常量 数据类型_注册设备, "11"
-    .常量 数据类型_登陆设备, "12"
-    
-    
-    .常量 协议_注册登陆用户, "32", , 用户登录注册
+    .常量 数据类型_登录设备, "12"
+    .常量 协议_注册登录用户, "32", , 用户登录注册
     .常量 数据类型_注册用户, "11"
-    .常量 数据类型_登陆用户, "12"
-    
-    
+    .常量 数据类型_登录用户, "12"
+    .常量 数据类型_被迫断开终端, "13", , 被其他设备挤掉
+    .常量 协议_推送系统消息, "41", , 系统平台级推送
+    .常量 协议_推送用户消息, "42", , 用户标准推送
+    .常量 协议_推送批量用户消息, "43", , 控制端向指定用户推送消息
+    .常量 数据类型_推送数据, "11"
+    .常量 数据类型_推送指令, "12"
     .常量 数据类型_成功, "1"
     .常量 数据类型_失败, "2"
     .常量 数据类型_其它, "3"
     .常量 数据类型_终端列表, "11"
-    .常量 常量1
+
+
 
 
 
@@ -113,7 +110,13 @@
 
 
 
- 
+
+
+
+
+
+
+
 
 
 ## 三： 连接池模块：
@@ -137,3 +140,80 @@ ServerFunction
 
 
  
+## 四：客户端
+#### 1.客户端常量 
+
+    public class BaseData {
+        public static final String SERVER_URL = "127.0.0.1";
+        public static final int SERVER_PORT = 10080;
+        public static final int SERVER_TIMEOUT = 2000;
+        public static String ClientFlag = "252E90D2D36C4f7dB09EAEACCCA9D560BB83B5D5F9474db688890E899816933";
+        public static final String ServerFlag = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+        public static final String ClientNoFlag = "0000000000000000000000000000000000000000000000000000000000000000";
+    
+         public static class UserData {
+            public static String UserName = "";
+            public static String UserPwd = "";
+        }
+    
+        public class Protocol {
+            //协议_注册登录用户
+            public static final int Protocol_RegLoginUser = 32;
+            //协议_推送系统消息
+            public static final int Protocol_PushSystemMsg = 41;
+            //协议_推送用户消息
+            public static final int Protocol_PushUserMsg = 42;
+    
+        }
+    
+        public class DataType {
+            //数据类型_成功
+            public static final int DataType_Success = 1;
+            //数据类型_失败
+            public static final int DataType_Error = 2;
+            //数据类型_其他
+            public static final int DataType_Other = 3;
+            //数据类型_注册用户
+            public static final int DataType_RegisterUser = 11;
+            //数据类型_登录用户
+            public static final int DataType_LoginUser = 12;
+            //数据类型_终端列表
+            public static final int DataType_ClientList = 11;
+            //数据类型_推送消息
+            public static final int DataType_PushMsg = 11;
+            //数据类型_推送指令
+            public static final int DataType_PushFunction = 12;
+    
+    
+        }
+    }
+    
+#### 2.监听回调
+    //消息接收回调
+    public interface onReceiveListener {
+        public void onReceive(SocketData mSocketData);
+
+        public void onError(Exception mE);
+    }
+    
+    //服务状态监听
+    public interface onServerStatusListener {
+    
+        //服务器连接成功
+        public void onConnected();
+        
+        //设备登陆成功，如Push等
+        public void onClientLogin();
+        
+        //用户登陆成功，如IM等
+        public void onUserLogin();
+        
+        //socket断开，检查时间间隔由basedata的服务器timeout时间控制
+        public void onDisconected();
+        
+        //数据接收发送或连接异常
+        public void onError(Exception mE);
+    }
+    
+#### 3.文件结构
+ClientSocketService  核心服务类
